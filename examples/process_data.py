@@ -14,7 +14,7 @@ import tensorflow as tf
 # Parameters for downloading data
 DOWNLOAD_URL = 'http://mattmahoney.net/dc/'
 EXPECTED_BYTES = 31344016
-DATA_FOLDER = '/Users/Chip/data/'
+DATA_FOLDER = '/Tmp/data/'
 FILE_NAME = 'text8.zip'
 
 def download(file_name, expected_bytes):
@@ -37,8 +37,13 @@ def read_data(file_path):
     There should be 17,005,207 tokens
     """
     with zipfile.ZipFile(file_path) as f:
-        words = tf.compat.as_str(f.read(f.namelist()[0])).split() 
+        fileTmp = f.read(f.namelist()[0])
         # tf.compat.as_str() converts the input into the string
+        strTmp = tf.compat.as_str(fileTmp)
+        # To Read Latin1 encoding
+        #strTmp = tf.compat.as_str(fileTmp, encoding='ISO-8859-1')
+        words = strTmp.split()
+
     return words
 
 def build_vocab(words, vocab_size):
@@ -46,14 +51,18 @@ def build_vocab(words, vocab_size):
     dictionary = dict()
     count = [('UNK', -1)]
     count.extend(Counter(words).most_common(vocab_size - 1))
+
+    # Create a Dictionary with the most frequent words and
+    # save to file the first 1000
     index = 0
-    with open('processed/vocab_1000.tsv', "w") as f:
+    with open(DATA_FOLDER + 'processed/vocab_1000.tsv', "w") as f:
         # f.write("Name\n")
         for word, _ in count:
             dictionary[word] = index
             if index < 1000:
                 f.write(word + "\n")
             index += 1
+
     index_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
     return dictionary, index_dictionary
 
@@ -88,7 +97,8 @@ def process_data(vocab_size, batch_size, skip_window):
     index_words = convert_words_to_index(words, dictionary)
     del words # to save memory
     single_gen = generate_sample(index_words, skip_window)
-    return get_batch(single_gen, batch_size)
+    batch = get_batch(single_gen, batch_size)
+    return batch
 
 def get_index_vocab(vocab_size):
     file_path = download(FILE_NAME, EXPECTED_BYTES)
