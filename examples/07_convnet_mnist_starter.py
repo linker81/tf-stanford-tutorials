@@ -171,8 +171,12 @@ class MNIST_CNN:
         # using gradient descent with learning rate of LEARNING_RATE to minimize cost
         # don't forgot to pass in global_step
         # The Global Step shall be automatically updated
-        self.optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(self.loss,
-                                                                                   global_step=self.global_step)
+        #self.optimizer = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(self.loss,
+        #                                                                           global_step=self.global_step)
+
+        self.optimizer = tf.train.AdamOptimizer(LEARNING_RATE).minimize(self.loss,
+                                                                        global_step=self.global_step)
+
     def _create_summaries(self):
         with tf.name_scope("summaries"):
             tf.summary.scalar("loss", self.loss)
